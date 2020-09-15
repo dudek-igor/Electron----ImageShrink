@@ -1,7 +1,20 @@
-const { app, BrowserWindow, Menu, globalShortcut } = require("electron");
-
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  globalShortcut,
+  ipcMain,
+  shell,
+} = require("electron");
+const path = require("path");
+const os = require("os");
+const imagemin = require("imagemin");
+const imageminMozjpeg = require("imagemin-mozjpeg");
+const imageminPngquant = require("imagemin-pngquant");
+const slash = require("slash");
+const log = require("electron-log");
 //Set env
-process.env.NODE_ENV = "development";
+process.env.NODE_ENV = "production";
 
 const isDev = process.env.NODE_ENV !== "production" ? true : false;
 const isMac = process.platform === "darwin" ? true : false;
@@ -59,7 +72,7 @@ const menu = [
   ...(isMac
     ? [
         {
-          label: app.title,
+          label: app.name,
           submenu: [
             {
               label: "About",
@@ -114,6 +127,33 @@ const menu = [
   //   ],
   // },
 ];
+
+ipcMain.on("image:minimize", (e, options) => {
+  options.dest = path.join(os.homedir(), "imageshrink");
+  shrinkImage(options);
+});
+
+async function shrinkImage({ imgPath, quality, dest }) {
+  try {
+    const pnqQuality = quality / 100;
+    const files = await imagemin([slash(imgPath)], {
+      destination: dest,
+      plugins: [
+        imageminMozjpeg({
+          quality,
+        }),
+        imageminPngquant({
+          quality: [pnqQuality, pnqQuality],
+        }),
+      ],
+    });
+    log.infor(files);
+    mainWindow.webContents.send("image:done");
+    shell.openPath(dest);
+  } catch (err) {
+    log.error(err);
+  }
+}
 
 // close Window
 app.on("window-all-closed", () => {
