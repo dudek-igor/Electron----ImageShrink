@@ -147,7 +147,7 @@ async function shrinkImage({ imgPath, quality, dest }) {
         }),
       ],
     });
-    log.infor(files);
+    log.info(files);
     mainWindow.webContents.send("image:done");
     shell.openPath(dest);
   } catch (err) {
