@@ -7,6 +7,7 @@ const isDev = process.env.NODE_ENV !== "production" ? true : false;
 const isMac = process.platform === "darwin" ? true : false;
 
 let mainWindow;
+let aboutWindow;
 
 const createMainWindow = () => {
   mainWindow = new BrowserWindow({
@@ -20,6 +21,19 @@ const createMainWindow = () => {
     },
   });
   mainWindow.loadFile("./app/index.html");
+};
+const createAboutWindow = () => {
+  aboutWindow = new BrowserWindow({
+    title: "About ImageShrink",
+    width: 300,
+    height: 300,
+    icon: `${__dirname}/assets/icons/Icon_256x256.png`,
+    resizable: false,
+    webPreferences: {
+      nodeIntegration: true,
+    },
+  });
+  aboutWindow.loadFile("./app/about.html");
 };
 
 //app
@@ -41,21 +55,60 @@ const menu = [
   ...(isMac
     ? [
         {
-          role: "appMenu",
+          label: app.name,
+          submenu: [
+            {
+              label: "About",
+              click: () => {
+                createAboutWindow();
+              },
+            },
+          ],
         },
       ]
     : []),
   {
-    label: "File",
-    submenu: [
-      {
-        label: "Quit",
-        // accelerator: isMac ? "Command + W" : "Ctrl + W",
-        accelerator: "CmdOrCtrl + W",
-        click: () => app.quit(),
-      },
-    ],
+    role: "fileMenu",
   },
+  ...(!isMac
+    ? [
+        {
+          label: "Help",
+          submenu: [
+            {
+              label: "About",
+              click: () => {
+                createAboutWindow();
+              },
+            },
+          ],
+        },
+      ]
+    : []),
+  ...(isDev
+    ? [
+        {
+          label: "Developer",
+          submenu: [
+            { role: "reload" },
+            { role: "forcereload" },
+            { type: "separator" },
+            { role: "toggledevtools" },
+          ],
+        },
+      ]
+    : []),
+  // {
+  //   label: "File",
+  //   submenu: [
+  //     {
+  //       label: "Quit",
+  //       // accelerator: isMac ? "Command + W" : "Ctrl + W",
+  //       accelerator: "CmdOrCtrl + W",
+  //       click: () => app.quit(),
+  //     },
+  //   ],
+  // },
 ];
 
 // close Window
